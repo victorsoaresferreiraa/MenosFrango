@@ -26,6 +26,8 @@ setup:
 	docker compose up -d --build
 	@echo "✅ Setup concluído! Use 'make logs' para acompanhar a subida."
 
+test-e2e:
+	docker compose exec frontend npx playwright test
 up:
 	docker compose up -d
 

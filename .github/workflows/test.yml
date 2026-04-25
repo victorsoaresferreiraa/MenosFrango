@@ -7,31 +7,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Atualizei para v4 (mais moderno)
 
       - name: Create .env file
         run: cp .env.example .env
 
       - name: Build and Start Containers
         run: |
-          # Usamos --no-healthcheck para ignorar o status interno do Docker
-          # e focar no teste real de conexão que faremos abaixo
+          # O --wait garante que o compose só termine quando os serviços subirem
+          # Mas vamos usar o curl para ter certeza absoluta
           docker compose up -d --build
           
       - name: Wait for API to be ready
         run: |
-          echo "⏳ Aguardando a API responder no endpoint /health..."
-          # Tenta conectar por 60 segundos antes de desistir
-          timeout 60s sh -c 'until curl -f http://localhost:8000/health; do echo "API ainda subindo..."; sleep 5; done'
+          echo "⏳ Aguardando a API subir (máximo 60s)..."
+          # Tenta conectar na API por até 60 segundos
+          timeout 60s sh -c 'until curl -f http://localhost:8000/health; do echo "Aguardando..."; sleep 5; done'
           
-      - name: Check Logs on Failure
-        if: failure()
-        run: |
-          echo "❌ Falha detectada! Analisando as 'caixas pretas' (logs):"
-          docker compose logs api
-          docker compose logs db
-
-      - name: Final Success Check
+      - name: Verify API Status
         run: |
           echo "🚀 API confirmada e operante!"
           curl -f http://localhost:8000/health
+
+      - name: Check Container Logs on Failure
+        if: failure()
+        run: |
+          echo "❌ O teste falhou! Mostrando logs para debug:"
+          docker compose logs api
+          docker compose logs db
+
+      - name: Run Playwright Smoke Test
+        run: |
+          # O Playwright precisa de navegadores instalados
+          docker compose exec -T frontend npx playwright install --with-deps
+          # Roda o teste que criamos
+          docker compose exec -T frontend npx playwright test
