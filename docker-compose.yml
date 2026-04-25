@@ -85,15 +85,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # seed com || true para não bloquear se já existir
-    
     command: sh /app/entrypoint.sh
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 30s
 
   worker:
     build:
@@ -130,8 +122,7 @@ services:
       - /app/node_modules
       - /app/.next
     depends_on:
-      api:
-        condition: service_healthy
+      - api
 
 volumes:
   pg_data:
