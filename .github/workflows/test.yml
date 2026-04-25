@@ -36,6 +36,11 @@ jobs:
           docker compose logs api
           docker compose logs db
 
+      - name: Wait for Frontend to be ready
+        run: |
+          echo "⏳ Aguardando o Frontend subir..."
+          timeout 60s sh -c 'until curl -f http://localhost:3000; do echo "Aguardando Frontend..."; sleep 5; done'
+
       - name: 🎭 Run Playwright tests
         run: |
           # 🔑 A MÁGICA: Retoma a posse dos arquivos para o usuário do GitHub
