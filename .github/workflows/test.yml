@@ -36,9 +36,12 @@ jobs:
           docker compose logs api
           docker compose logs db
 
-      - name: Run Playwright Smoke Test
+      - name: 🎭 Run Playwright tests
         run: |
-          # O Playwright precisa de navegadores instalados
-          docker compose exec -T frontend npx playwright install --with-deps
-          # Roda o teste que criamos
-          docker compose exec -T frontend npx playwright test
+          cd frontend
+          npm install
+          npx playwright install --with-deps chromium
+          npx playwright test
+        env:
+          # Aqui dizemos para o Playwright que o site está no Docker
+          BASE_URL: http://localhost:3000
