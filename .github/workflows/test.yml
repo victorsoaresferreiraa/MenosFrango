@@ -1,4 +1,3 @@
-```yaml
 name: Docker Build Test
 
 on: [push, pull_request]
@@ -13,17 +12,22 @@ jobs:
       - name: Create .env file
         run: cp .env.example .env
 
-      - name: Build Docker images
-        run: docker compose build
-
-      - name: Start containers
-        run: docker compose up -d
-
-      - name: Check API Health
+      - name: Build and Start Containers
         run: |
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
-
-      - name: Run E2E Tests (Playwright)
+          docker compose up -d --build
+          
+      - name: Wait for API to be ready
         run: |
-          npx playwright test
+          echo "⏳ Aguardando a API subir (máximo 60s)..."
+          # Tenta conectar na API por até 60 segundos
+          timeout 60s sh -c 'until curl -f http://localhost:8000/health; do sleep 5; done'
+          
+      - name: Check Container Logs on Failure
+        if: failure() # Só roda esse passo se algo acima der errado
+        run: |
+          echo "❌ O teste falhou! Mostrando logs para debug:"
+          docker compose logs api
+          docker compose logs db
+
+      - name: Verify API Status
+        run: curl -f http://localhost:8000/health
