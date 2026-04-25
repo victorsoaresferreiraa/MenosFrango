@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  title: Athletic AI API
+  description: API para acompanhamento de treinos e nutrição com IA
+  version: 1.0.0
+  contact:
+    name: Athletic AI Team
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Desenvolvimento local
+  - url: https://api.athletic.ai/api/v1
+    description: Produção
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserCreate:
+      type: object
+      required: [email, password, name]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        name: { type: string, minLength: 2 }
+
+    UserLogin:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        token_type: { type: string, default: bearer }
+
+    UserResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        name: { type: string }
+        height_cm: { type: number, nullable: true }
+        weight_kg: { type: number, nullable: true }
+        age: { type: integer, nullable: true }
+        goal: { type: string, enum: [cutting, bulking, manutencao], nullable: true }
+        level: { type: string, enum: [iniciante, intermediario, avancado], nullable: true }
+        is_active: { type: boolean }
+        is_admin: { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    WorkoutCreate:
+      type: object
+      required: [exercise, muscle_group, sets, reps, weight_kg, workout_date]
+      properties:
+        exercise: { type: string }
+        muscle_group: { type: string }
+        sets: { type: integer, minimum: 1 }
+        reps: { type: integer, minimum: 1 }
+        weight_kg: { type: number, minimum: 0 }
+        rpe: { type: integer, minimum: 1, maximum: 10 }
+        notes: { type: string }
+        workout_date: { type: string, format: date-time }
+
+    WorkoutResponse:
+      allOf:
+        - $ref: "#/components/schemas/WorkoutCreate"
+        - type: object
+          properties:
+            id: { type: string, format: uuid }
+            user_id: { type: string, format: uuid }
+            created_at: { type: string, format: date-time }
+
+    NutritionLogCreate:
+      type: object
+      required: [food_name, quantity_g, calories, log_date]
+      properties:
+        food_name: { type: string }
+        quantity_g: { type: number }
+        calories: { type: number }
+        protein_g: { type: number, default: 0 }
+        carbs_g: { type: number, default: 0 }
+        fat_g: { type: number, default: 0 }
+        log_date: { type: string, format: date }
+
+    Error:
+      type: object
+      properties:
+        detail: { type: string }
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Registrar novo usuário
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserCreate" }
+      responses:
+        "201":
+          description: Usuário criado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenResponse" }
+        "409":
+          description: E-mail já cadastrado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserLogin" }
+      responses:
+        "200":
+          description: Login bem-sucedido
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenResponse" }
+        "401":
+          description: Credenciais inválidas
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      summary: Renovar access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TokenResponse" }
+
+  /users/me:
+    get:
+      tags: [users]
+      summary: Obter perfil do usuário autenticado
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserResponse" }
+    put:
+      tags: [users]
+      summary: Atualizar perfil
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                height_cm: { type: number }
+                weight_kg: { type: number }
+                age: { type: integer }
+                goal: { type: string }
+                level: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserResponse" }
+
+  /workouts:
+    get:
+      tags: [workouts]
+      summary: Listar treinos
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: page_size
+          in: query
+          schema: { type: integer, default: 20 }
+        - name: muscle_group
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Lista paginada de treinos
+    post:
+      tags: [workouts]
+      summary: Criar treino
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkoutCreate" }
+      responses:
+        "201":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkoutResponse" }
+
+  /workouts/{workout_id}:
+    get:
+      tags: [workouts]
+      summary: Buscar treino por ID
+      parameters:
+        - name: workout_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkoutResponse" }
+        "404":
+          description: Não encontrado
+    put:
+      tags: [workouts]
+      summary: Atualizar treino
+      parameters:
+        - name: workout_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorkoutResponse" }
+    delete:
+      tags: [workouts]
+      summary: Remover treino
+      parameters:
+        - name: workout_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Removido com sucesso
+
+  /nutrition/log:
+    post:
+      tags: [nutrition]
+      summary: Registrar refeição
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NutritionLogCreate" }
+      responses:
+        "201":
+          description: Log criado
+
+  /nutrition/day/{date}:
+    get:
+      tags: [nutrition]
+      summary: Logs nutricionais do dia
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: Resumo do dia
+
+  /nutrition/macro-goals:
+    get:
+      tags: [nutrition]
+      summary: Calcular metas de macros
+      responses:
+        "200":
+          description: Metas calculadas via Mifflin-St Jeor
+
+  /dashboard/summary:
+    get:
+      tags: [dashboard]
+      summary: KPIs do dashboard
+      responses:
+        "200":
+          description: Resumo e KPIs
+
+  /dashboard/graphs:
+    get:
+      tags: [dashboard]
+      summary: Dados para gráficos
+      parameters:
+        - name: days
+          in: query
+          schema: { type: integer, default: 30 }
+      responses:
+        "200":
+          description: Dados de gráficos
+
+  /photos:
+    get:
+      tags: [photos]
+      summary: Listar fotos corporais
+      responses:
+        "200":
+          description: Lista de fotos
+    post:
+      tags: [photos]
+      summary: Upload de foto corporal
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                weight_kg: { type: number }
+                notes: { type: string }
+                taken_at: { type: string, format: date-time }
+      responses:
+        "201":
+          description: Foto enviada
+
+  /photos/{photo_id}:
+    delete:
+      tags: [photos]
+      summary: Remover foto
+      parameters:
+        - name: photo_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        "204":
+          description: Removida
+
+  /ai/workout-plan:
+    post:
+      tags: [ai]
+      summary: Gerar plano de treino via IA
+      responses:
+        "200":
+          description: Plano gerado
+
+  /ai/nutrition-plan:
+    post:
+      tags: [ai]
+      summary: Gerar plano nutricional via IA
+      responses:
+        "200":
+          description: Plano gerado
+
+  /ai/analyze-progress:
+    post:
+      tags: [ai]
+      summary: Analisar progresso via IA
+      responses:
+        "200":
+          description: Análise gerada
+
+  /reports/monthly:
+    post:
+      tags: [reports]
+      summary: Solicitar geração de relatório mensal
+      parameters:
+        - name: year
+          in: query
+          schema: { type: integer }
+        - name: month
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 12 }
+      responses:
+        "200":
+          description: Relatório enfileirado para geração
