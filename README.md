@@ -35,7 +35,7 @@ Um SaaS completo que conecta **personal trainers** e **alunos**, com IA gerando 
 ## 🚀 Rodando em 3 comandos
 
 ```bash
-git clone https://github.com/victorsoaresferreiraa/Athletic_Ai.git menosfrango
+git clone https://github.com/victorsoaresferreiraa/MenosFrango.git
 cd menosfrango
 cp .env.example .env
 docker compose up -d
