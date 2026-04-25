@@ -1,5 +1,7 @@
 #!/bin/sh
 
+python scripts/check_env.py
+
 # Espera o banco de dados ficar pronto para não dar erro de conexão
 echo "Aguardando o banco de dados..."
 sleep 2
