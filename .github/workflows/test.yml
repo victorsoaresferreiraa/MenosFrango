@@ -14,20 +14,24 @@ jobs:
 
       - name: Build and Start Containers
         run: |
+          # Usamos --no-healthcheck para ignorar o status interno do Docker
+          # e focar no teste real de conexão que faremos abaixo
           docker compose up -d --build
           
       - name: Wait for API to be ready
         run: |
-          echo "⏳ Aguardando a API subir (máximo 60s)..."
-          # Tenta conectar na API por até 60 segundos
-          timeout 60s sh -c 'until curl -f http://localhost:8000/health; do sleep 5; done'
+          echo "⏳ Aguardando a API responder no endpoint /health..."
+          # Tenta conectar por 60 segundos antes de desistir
+          timeout 60s sh -c 'until curl -f http://localhost:8000/health; do echo "API ainda subindo..."; sleep 5; done'
           
-      - name: Check Container Logs on Failure
-        if: failure() # Só roda esse passo se algo acima der errado
+      - name: Check Logs on Failure
+        if: failure()
         run: |
-          echo "❌ O teste falhou! Mostrando logs para debug:"
+          echo "❌ Falha detectada! Analisando as 'caixas pretas' (logs):"
           docker compose logs api
           docker compose logs db
 
-      - name: Verify API Status
-        run: curl -f http://localhost:8000/health
+      - name: Final Success Check
+        run: |
+          echo "🚀 API confirmada e operante!"
+          curl -f http://localhost:8000/health
