@@ -23,3 +23,7 @@ jobs:
         run: |
           sleep 10
           curl -f http://localhost:8000/health || exit 1
+
+      - name: Run E2E Tests (Playwright)
+        run: |
+          npx playwright test

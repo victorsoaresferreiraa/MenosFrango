@@ -39,6 +39,7 @@ git clone https://github.com/victorsoaresferreiraa/MenosFrango.git
 cd menosfrango
 cp .env.example .env
 docker compose up -d
+Após clonar, rode make install-hooks
 ```
 
 Pronto! Acesse:

@@ -1,26 +1,19 @@
-FROM python:3.11-slim
-
-# Evitar prompts interativos
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV PIP_NO_CACHE_DIR=1
-
+# ESTÁGIO 1: O Construtor (Cozinha)
+FROM python:3.11-slim as builder
 WORKDIR /app
-
-# Instalar dependências do sistema
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    build-essential \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copiar e instalar dependências Python
+# Instala compiladores necessários para algumas bibliotecas de banco
+RUN apt-get update && apt-get install -y gcc libpq-dev
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --user --no-cache-dir -r requirements.txt
 
-# Copiar código fonte
+# ESTÁGIO 2: O Executor (Mesa do Cliente)
+FROM python:3.11-slim
+WORKDIR /app
+# Copia apenas as bibliotecas instaladas, sem o lixo dos compiladores
+COPY --from=builder /root/.local /root/.local
 COPY . .
-
-EXPOSE 8000
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Ajusta o caminho para o Python achar as libs
+ENV PATH=/root/.local/bin:$PATH
+# Torna o script executável
+RUN chmod +x entrypoint.sh scripts/*.py
+CMD ["sh", "entrypoint.sh"]
