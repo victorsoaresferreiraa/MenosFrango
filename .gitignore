@@ -42,6 +42,7 @@ pnpm-debug.log*
 
 ### Python
 # virtualenvs
+.env
 venv/
 .env/
 .env.*            # ignore local env files (keep .env.example)
