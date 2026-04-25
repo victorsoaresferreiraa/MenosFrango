@@ -38,6 +38,8 @@ jobs:
 
       - name: 🎭 Run Playwright tests
         run: |
+          # 🔑 A MÁGICA: Retoma a posse dos arquivos para o usuário do GitHub
+          sudo chown -R $USER:$USER .
           cd frontend
           npm install
           npx playwright install --with-deps chromium
