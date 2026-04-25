@@ -89,6 +89,7 @@ services:
     command: >
       sh -c "
         alembic upgrade head &&
+        command: /bin/sh /app/entrypoint.sh
         python scripts/seed.py || true &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
