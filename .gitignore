@@ -1,0 +1,122 @@
+# menosfrango — full stack (.NET/Node/Next.js + Python/FastAPI) common ignores
+
+### OS
+.DS_Store
+Thumbs.db
+desktop.ini
+Icon?
+
+### Editors / IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+*.iml
+
+### Node / Next.js / frontend
+node_modules/
+.next/
+.next/cache/
+out/
+dist/
+build/
+.cache/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vercel/
+.vercel/output
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.tsbuildinfo
+
+### TypeScript / package artifacts
+.bundle/
+*.tgz
+
+### Python
+# virtualenvs
+.env
+venv/
+.env/
+.env.*            # ignore local env files (keep .env.example)
+.venv/
+.Python
+
+# bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+nosetests.xml
+test-results.xml
+
+# type checking
+.mypy_cache/
+.pyre/
+
+# logs / runtime
+*.log
+logs/
+pip-log.txt
+celerybeat-schedule
+celerybeat.pid
+*.pid
+
+# DB / cache
+*.sqlite3
+*.db
+dump.rdb
+*.rdb
+appendonly.aof
+
+# Docker
+.docker/
+docker-compose.override.yml
+docker-compose.*.local.yml
+docker-compose.vscode.yml
+
+# Kubernetes / Helm / terraform local files
+.kube/
+.terraform/
+
+# Storage / uploads / build artifacts
+uploads/
+media/
+staticfiles/
+tmp/
+temp/
+*.cache
+
+# MinIO / S3 local artifacts (if any)
+.minio/
+minio.db
+
+### Misc
+*.pem
+*.key
+*.crt
+credentials.json
+*.env.secret
+
+# Keep project-specific tracked folders like migrations (alembic/) and docs/ by not ignoring them.
+# Add any other local files you create (e.g. .local_settings.py) to this file as needed.

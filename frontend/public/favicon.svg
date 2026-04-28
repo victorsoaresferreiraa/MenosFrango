@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" rx="8" fill="#1d4ed8"/>
+  <!-- Crista pequena -->
+  <ellipse cx="16" cy="5" rx="5" ry="4" fill="#ef4444"/>
+  <!-- Cabeça -->
+  <ellipse cx="16" cy="14" rx="11" ry="10" fill="#fbbf24"/>
+  <!-- Olhos -->
+  <circle cx="12" cy="13" r="3" fill="white"/>
+  <circle cx="12" cy="13" r="2" fill="#1d4ed8"/>
+  <circle cx="13" cy="12" r="0.8" fill="white"/>
+  <circle cx="20" cy="13" r="3" fill="white"/>
+  <circle cx="20" cy="13" r="2" fill="#1d4ed8"/>
+  <circle cx="21" cy="12" r="0.8" fill="white"/>
+  <!-- Bico -->
+  <ellipse cx="16" cy="18" rx="3.5" ry="2.5" fill="#f97316"/>
+  <!-- Antena -->
+  <line x1="16" y1="5" x2="16" y2="1" stroke="#60a5fa" stroke-width="1.5"/>
+  <circle cx="16" cy="1" r="1.5" fill="#60a5fa"/>
+  <!-- Corpo robô mini -->
+  <rect x="10" y="23" width="12" height="8" rx="3" fill="#1e40af"/>
+  <circle cx="16" cy="27" r="2" fill="#60a5fa"/>
+</svg>

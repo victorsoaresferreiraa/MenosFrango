@@ -1,0 +1,49 @@
+name: Docker Build Test
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Atualizei para v4 (mais moderno)
+
+      - name: Create .env file
+        run: cp .env.example .env
+
+      - name: Build and Start Containers
+        run: |
+          # O --wait garante que o compose só termine quando os serviços subirem
+          # Mas vamos usar o curl para ter certeza absoluta
+          docker compose up -d --build
+          
+      - name: Wait for API to be ready
+        run: |
+          echo "⏳ Aguardando a API subir (máximo 60s)..."
+          # Tenta conectar na API por até 60 segundos
+          timeout 60s sh -c 'until curl -f http://localhost:8000/health; do echo "Aguardando..."; sleep 5; done'
+          
+      - name: Verify API Status
+        run: |
+          echo "🚀 API confirmada e operante!"
+          curl -f http://localhost:8000/health
+
+      - name: Check Container Logs on Failure
+        if: failure()
+        run: |
+          echo "❌ O teste falhou! Mostrando logs para debug:"
+          docker compose logs api
+          docker compose logs db
+
+      - name: 🎭 Run Playwright tests
+        run: |
+          # 🔑 A MÁGICA: Retoma a posse dos arquivos para o usuário do GitHub
+          sudo chown -R $USER:$USER .
+          cd frontend
+          npm install
+          npx playwright install --with-deps chromium
+          npx playwright test
+        env:
+          # Aqui dizemos para o Playwright que o site está no Docker
+          BASE_URL: http://localhost:3000
